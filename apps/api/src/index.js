@@ -67,9 +67,9 @@ async function start() {
       console.error('[Startup] Skipping session restore (DB unavailable):', err.message);
     }
 
-    server.listen(env.PORT, '127.0.0.1', () => {
-      console.log(`\n🚀 API running on http://127.0.0.1:${env.PORT}`);
-      console.log(`🔌 WebSocket on ws://127.0.0.1:${env.PORT}/ws`);
+    server.listen(env.PORT, '0.0.0.0', () => {
+      console.log(`\n🚀 API running on port ${env.PORT}`);
+      console.log(`🔌 WebSocket on ws://0.0.0.0:${env.PORT}/ws`);
       console.log(`🌍 Env: ${env.NODE_ENV}\n`);
     });
   } catch (err) {
