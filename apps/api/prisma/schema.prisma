@@ -1,0 +1,44 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          String     @id @default(cuid())
+  email       String     @unique
+  password    String     // bcrypt hashed - NEVER stored in plain text
+  name        String
+  phone       String?    // WhatsApp phone number - set after pairing
+  notifyTargetJid   String? // Optional override: send notifications to this JID (e.g., second number or group)
+  notifyTargetPhone String? // Optional override phone to build JID if notifyTargetJid not set
+  isConnected Boolean    @default(false)
+  condition   Condition?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Condition {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // The user's natural-language notification condition
+  // Example: "notify me when anyone talks about assignments, class bunk, or exam dates"
+  prompt    String   @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("conditions")
+}
+
+// NOTE: Messages are NEVER stored. The LLM evaluates them in-memory only.
