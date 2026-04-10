@@ -45,28 +45,22 @@ export async function sendNotification(
 
   const uniqueTargets = [...new Set(targets)].filter(Boolean);
 
-  // Build a concise summary + original as two messages for better readability
-  const summaryText =
-    `🔔 *Smart Notifier Summary*\n` +
-    `*From:* ${senderName}\n` +
-    `*Condition:* ${condition}\n\n` +
-    `*Summary:* ${summary || 'Summary not available'}`;
-
-  const originalText =
-    `📨 *Original Message*\n` +
+  // Build a concise combined summary + original message
+  const combinedText =
+    `🔔 *Smart Notifier Alert*\n` +
     `*From:* ${senderName}\n\n` +
-    `${messageText}`;
+    `*Summary:*\n${summary || 'Summary not available'}\n\n` +
+    `*Original Message:*\n${messageText}`;
 
   try {
-    const preview = `${summaryText}\n---\n${originalText}`;
+    const preview = combinedText;
     console.log(`[Notifier] Payload preview:\n${preview.length > 500 ? preview.slice(0, 500) + '...' : preview}`);
 
     for (const jid of uniqueTargets) {
-      const res1 = await sock.sendMessage(jid, { text: summaryText });
-      const res2 = await sock.sendMessage(jid, { text: originalText });
+      const res = await sock.sendMessage(jid, { text: combinedText });
       console.log(
-        `[Notifier] ✅ Alerts sent to ${jid} (triggered by: ${senderName}) ` +
-        `summaryId=${res1?.key?.id || 'n/a'} originalId=${res2?.key?.id || 'n/a'}`
+        `[Notifier] ✅ Alert sent to ${jid} (triggered by: ${senderName}) ` +
+        `msgId=${res?.key?.id || 'n/a'}`
       );
     }
   } catch (err) {
