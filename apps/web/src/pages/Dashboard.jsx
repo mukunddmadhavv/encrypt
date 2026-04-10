@@ -37,111 +37,124 @@ export default function Dashboard() {
   const isConnected = wsStatus === 'connected' || user?.isConnected;
 
   return (
-    <div className="min-h-screen flex flex-col page-enter">
+    <div className="min-h-screen bg-gray-50 flex flex-col page-enter">
       <Navbar waStatus={wsStatus} />
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 space-y-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 space-y-8">
 
         {/* Welcome + status */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">
-              Hey, <span className="gradient-text">{user?.name?.split(' ')[0]}</span> 👋
+            <h1 className="text-2xl font-bold text-gray-900">
+              Overview
             </h1>
-            <p className="text-zinc-500 text-sm mt-1">Here's what's happening with your notifier.</p>
+            <p className="text-gray-500 text-sm mt-1">Here's what's happening with your notifier instance.</p>
           </div>
           <ConnectionStatus status={wsStatus} />
         </div>
 
+        {/* Action cards - Consolidated into a single panel like Dub.co */}
+        <div className="card-minimal overflow-hidden">
+          <div className="p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-start justify-between border-b border-gray-100">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-xl">📱</div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">WhatsApp Account</h2>
+                <p className="text-sm text-gray-500 mt-1 max-w-md">Connect your WhatsApp to allow Encrypt to read incoming messages and send you alerts.</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${isConnected ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                    {user?.phone ? `+${user.phone}` : 'Not connected'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="shrink-0 w-full md:w-auto">
+              {!isConnected ? (
+                <Link to="/connect" className="btn-primary block text-center min-w-[140px]">
+                  Link WhatsApp
+                </Link>
+              ) : (
+                <button
+                  onClick={handleDisconnect}
+                  disabled={disconnecting}
+                  className="btn-danger w-full md:w-auto min-w-[140px]"
+                >
+                  {disconnecting ? 'Disconnecting…' : 'Disconnect'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-start justify-between bg-gray-50/50">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-parrot-50 border border-parrot-100 flex items-center justify-center text-xl">🧠</div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">AI Filter Condition</h2>
+                <p className="text-sm text-gray-500 mt-1 max-w-md">Define exactly what kind of messages should trigger a notification. We'll ignore the rest.</p>
+                
+                {condition ? (
+                  <div className="mt-3 bg-white border border-gray-200 rounded-lg p-3 max-w-lg">
+                    <p className="text-sm text-gray-700 italic">"{condition.prompt}"</p>
+                  </div>
+                ) : (
+                  <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    No condition configured
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="shrink-0 w-full md:w-auto">
+              <Link to="/settings" className="btn-secondary block text-center min-w-[140px]">
+                {condition ? 'Edit Rule' : 'Set Rule'}
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Stats row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             {
-              label: 'WhatsApp',
+              label: 'WhatsApp Status',
               value: isConnected ? 'Connected' : (user?.phone ? 'Disconnected' : 'Not linked'),
-              sub: user?.phone ? `+${user.phone}` : 'No account linked',
-              color: isConnected ? 'text-green-400' : 'text-red-400',
+              sub: 'Real-time WebSocket',
+              isActive: isConnected,
             },
             {
-              label: 'AI Filter',
+              label: 'AI Status',
               value: condition ? 'Active' : 'Not set',
-              sub: condition ? condition.prompt.slice(0, 48) + '…' : 'Go to Settings to configure',
-              color: condition ? 'text-brand-400' : 'text-zinc-500',
+              sub: 'Evaluating messages',
+              isActive: !!condition,
             },
             {
-              label: 'Message storage',
-              value: 'Never stored',
-              sub: 'Zero messages written to DB',
-              color: 'text-emerald-400',
+              label: 'Database Privacy',
+              value: '100% Private',
+              sub: 'Zero messages stored',
+              isActive: true,
             },
           ].map((s) => (
-            <div key={s.label} className="glass rounded-2xl p-5">
-              <p className="text-xs text-zinc-500 uppercase tracking-wide mb-1">{s.label}</p>
-              <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-zinc-600 mt-1 leading-relaxed">{s.sub}</p>
+            <div key={s.label} className="card-minimal p-6">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{s.label}</p>
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${s.isActive ? 'bg-parrot-500' : 'bg-gray-300'}`} />
+                <p className="text-xl font-bold text-gray-900">{s.value}</p>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">{s.sub}</p>
             </div>
           ))}
         </div>
 
-        {/* Action cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-          {/* WhatsApp card */}
-          <div className="glass rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-green-500/15 border border-green-500/25 flex items-center justify-center text-xl">📱</div>
-              <div>
-                <h2 className="font-semibold text-white text-sm">WhatsApp Account</h2>
-                <p className="text-xs text-zinc-500">{user?.phone ? `+${user.phone}` : 'No account linked'}</p>
-              </div>
-            </div>
-
-            {!isConnected ? (
-              <Link to="/connect" className="btn-primary" style={{ display: 'block', textAlign: 'center', padding: '0.7rem 1rem' }}>
-                Link WhatsApp →
-              </Link>
-            ) : (
-              <button
-                onClick={handleDisconnect}
-                disabled={disconnecting}
-                className="btn-danger w-full"
-              >
-                {disconnecting ? 'Disconnecting…' : 'Disconnect account'}
-              </button>
-            )}
-          </div>
-
-          {/* Condition card */}
-          <div className="glass rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/25 flex items-center justify-center text-xl">🧠</div>
-              <div>
-                <h2 className="font-semibold text-white text-sm">Notification Condition</h2>
-                <p className="text-xs text-zinc-500">{condition ? 'Active condition set' : 'No condition configured'}</p>
-              </div>
-            </div>
-
-            {condition ? (
-              <div className="bg-brand-500/8 border border-brand-500/15 rounded-xl p-3">
-                <p className="text-xs text-zinc-400 leading-relaxed italic">"{condition.prompt}"</p>
-              </div>
-            ) : (
-              <p className="text-xs text-zinc-600">You need to set a condition before notifications will work.</p>
-            )}
-
-            <Link to="/settings" className="btn-secondary block text-center text-sm">
-              {condition ? 'Edit condition →' : 'Set condition →'}
-            </Link>
-          </div>
-        </div>
-
         {/* Info banner */}
         {isConnected && condition && (
-          <div className="glass rounded-2xl p-4 flex items-center gap-3 border border-brand-500/15">
-            <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse-slow flex-shrink-0" />
-            <p className="text-sm text-zinc-400">
-              <span className="text-brand-300 font-medium">Smart Notifier is active.</span>{' '}
-              Your messages are being monitored in real-time. Nothing is stored.
-            </p>
+          <div className="card-minimal p-4 flex items-center justify-between border-l-4 border-l-parrot-500">
+            <div className="flex items-center gap-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-parrot-500 animate-pulse flex-shrink-0" />
+              <p className="text-sm text-gray-700">
+                <span className="font-semibold text-gray-900">System Active.</span>{' '}
+                Monitoring WhatsApp messages in the background. Note: Messages are never stored.
+              </p>
+            </div>
           </div>
         )}
       </main>

@@ -27,26 +27,25 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 page-enter">
+    <div className="min-h-screen flex items-center justify-center px-4 page-enter bg-gray-50">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <span className="text-3xl">🔔</span>
-            <span className="text-xl font-bold text-white">Smart<span className="gradient-text">Notifier</span></span>
+            <span className="text-xl font-extrabold text-parrot-500">Encrypt</span>
           </Link>
-          <p className="text-zinc-500 mt-3 text-sm">Create your free account</p>
+          <p className="text-gray-500 mt-3 text-sm">Create your free account</p>
         </div>
 
-        <div className="glass rounded-2xl p-8 space-y-5">
+        <div className="card-minimal p-8 space-y-5">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/25 rounded-lg px-4 py-3 text-sm text-red-400">
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
               <input
                 id="reg-name"
                 type="text"
@@ -59,7 +58,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
               <input
                 id="reg-email"
                 type="email"
@@ -72,7 +71,7 @@ export default function Register() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
               <input
                 id="reg-password"
                 type="password"
@@ -85,20 +84,20 @@ export default function Register() {
               />
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary mt-2">
+            <button type="submit" disabled={loading} className="btn-primary mt-4 w-full">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin inline-block" />
                   Creating account…
                 </span>
-              ) : 'Create account →'}
+              ) : 'Create account'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-sm text-zinc-500 mt-5">
+        <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium transition-colors">
+          <Link to="/login" className="text-parrot-600 hover:text-parrot-700 font-semibold transition-colors">
             Sign in
           </Link>
         </p>

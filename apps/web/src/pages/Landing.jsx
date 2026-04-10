@@ -25,57 +25,54 @@ const FEATURES = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen flex flex-col page-enter">
+    <div className="min-h-screen flex flex-col page-enter bg-gray-50 bg-grid-pattern relative">
       {/* Header */}
-      <header className="sticky top-0 z-50 glass border-b border-white/[0.06]">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🔔</span>
-            <span className="font-bold text-white tracking-tight">
-              Smart<span className="gradient-text">Notifier</span>
-            </span>
+            <span className="text-xl font-bold text-parrot-500 tracking-tight">Encrypt</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="btn-secondary text-sm px-4 py-2">Sign in</Link>
+            <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3">Sign in</Link>
             <Link
               to="/register"
-              className="btn-primary text-sm"
-              style={{ width: 'auto', padding: '0.5rem 1.25rem' }}
+              className="bg-parrot-500 hover:bg-parrot-600 text-white font-medium rounded-full text-sm transition-colors shadow-sm"
+              style={{ width: 'auto', padding: '0.4rem 1.25rem' }}
             >
-              Get started →
+              Get started
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <main className="flex-1">
-        <section className="max-w-5xl mx-auto px-6 pt-24 pb-20 text-center">
+      <main className="flex-1 relative z-10">
+        <section className="max-w-5xl mx-auto px-6 pt-28 pb-24 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-8 text-sm text-brand-300 border border-brand-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse-slow" />
+          <div className="inline-flex items-center gap-2 bg-white rounded-full px-4 py-1.5 mb-8 text-sm text-gray-600 border border-gray-200 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-parrot-500" />
             Powered by OpenRouter LLM
           </div>
 
-          <h1 className="text-5xl sm:text-6xl font-black text-white leading-tight tracking-tight mb-6">
-            WhatsApp alerts,{' '}
-            <span className="gradient-text">only when<br />they matter</span>
+          <h1 className="text-5xl sm:text-7xl font-extrabold text-gray-900 leading-tight tracking-tight mb-6">
+            WhatsApp alerts,<br />
+            <span className="text-parrot-500">only when they matter.</span>
           </h1>
 
-          <p className="text-lg text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
             Connect your WhatsApp, set a condition in plain English, and let AI
             filter the noise — notifying you only when something important happens.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
-              className="btn-primary text-base"
+              className="bg-gray-900 hover:bg-gray-800 text-white text-base font-medium rounded-lg shadow-sm transition-colors"
               style={{ width: 'auto', padding: '0.875rem 2.5rem' }}
             >
-              Start for free →
+              Start for free
             </Link>
-            <Link to="/login" className="btn-secondary text-sm px-8 py-3">
+            <Link to="/login" className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-base font-medium rounded-lg shadow-sm transition-colors px-8 py-3">
               Sign in
             </Link>
           </div>
@@ -83,31 +80,31 @@ export default function Landing() {
 
         {/* Feature cards */}
         <section className="max-w-5xl mx-auto px-6 pb-24">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {FEATURES.map((f) => (
-              <div key={f.title} className="glass glass-hover rounded-2xl p-6">
-                <div className="text-3xl mb-3">{f.icon}</div>
-                <h3 className="text-base font-semibold text-white mb-1">{f.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">{f.desc}</p>
+              <div key={f.title} className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:border-parrot-300 hover:shadow-md transition-all">
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
         {/* How it works */}
-        <section className="max-w-3xl mx-auto px-6 pb-28 text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">How it works</h2>
-          <p className="text-zinc-500 mb-10 text-sm">Three steps, done in under a minute</p>
+        <section className="max-w-4xl mx-auto px-6 pb-32 text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-3">How it works</h2>
+          <p className="text-gray-500 mb-12 text-base">Three simple steps, done in under a minute.</p>
           <div className="flex flex-col sm:flex-row gap-6 items-stretch">
             {[
               { n: '01', t: 'Link WhatsApp', d: 'Enter your phone number, get a code, paste it in WhatsApp.' },
               { n: '02', t: 'Set your condition', d: 'Write in plain English when you want to be notified.' },
               { n: '03', t: 'Relax', d: 'AI reads every message silently. You only hear when it matters.' },
             ].map((s) => (
-              <div key={s.n} className="flex-1 glass rounded-2xl p-6 text-left">
-                <span className="text-xs font-mono text-brand-500 font-bold">{s.n}</span>
-                <h3 className="text-sm font-semibold text-white mt-2 mb-1">{s.t}</h3>
-                <p className="text-xs text-zinc-500 leading-relaxed">{s.d}</p>
+              <div key={s.n} className="flex-1 bg-white border border-gray-200 rounded-2xl p-6 text-left shadow-sm">
+                <span className="text-xs font-bold font-mono text-parrot-600 bg-parrot-50 px-2 py-1 rounded inline-block mb-3">{s.n}</span>
+                <h3 className="text-base font-bold text-gray-900 mb-2">{s.t}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{s.d}</p>
               </div>
             ))}
           </div>
@@ -115,8 +112,8 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06] py-6 text-center text-xs text-zinc-600">
-        Built with Baileys · OpenRouter · Supabase · Render · Vercel
+      <footer className="border-t border-gray-200 bg-white py-8 text-center text-sm font-medium text-gray-400">
+        Built with Baileys · OpenRouter · Supabase · Render
       </footer>
     </div>
   );

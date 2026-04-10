@@ -46,7 +46,7 @@ export default function NotifyTargetEditor() {
   if (loading) {
     return (
       <div className="h-28 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-parrot-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function NotifyTargetEditor() {
     <form onSubmit={handleSave} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Target JID (preferred)
           </label>
           <input
@@ -65,12 +65,12 @@ export default function NotifyTargetEditor() {
             onChange={(e) => setJid(e.target.value)}
             disabled={saving}
           />
-          <p className="text-[11px] text-zinc-600 mt-1">
+          <p className="text-[11px] text-gray-500 mt-1.5">
             Use the JID of your second number or a group (e.g., 12345-6789@g.us).
           </p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Target Phone (fallback)
           </label>
           <input
@@ -80,15 +80,15 @@ export default function NotifyTargetEditor() {
             onChange={(e) => setPhone(e.target.value)}
             disabled={saving}
           />
-          <p className="text-[11px] text-zinc-600 mt-1">
+          <p className="text-[11px] text-gray-500 mt-1.5">
             Only used if JID is empty; will be converted to JID automatically.
           </p>
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
 
-      <button type="submit" disabled={saving} className="btn-primary">
+      <button type="submit" disabled={saving} className="btn-primary" style={{ width: 'auto' }}>
         {saving ? 'Saving…' : saved ? 'Saved!' : 'Save target'}
       </button>
     </form>

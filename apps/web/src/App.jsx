@@ -12,7 +12,6 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="mesh-bg" />
         <Routes>
           {/* Public */}
           <Route path="/"          element={<Landing />} />
