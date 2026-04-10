@@ -38,7 +38,10 @@ function getLocalDir(userId) {
 
 function extractPhoneFromJid(jid) {
   if (!jid) return null;
-  const digits = jid.split('@')[0]?.replace(/[^0-9]/g, '');
+  // WhatsApp linked device JIDs look like "1234567890:12@s.whatsapp.net"
+  // We need to split by ':' or '@' first to isolate just the base phone number
+  const base = jid.split('@')[0].split(':')[0];
+  const digits = base.replace(/[^0-9]/g, '');
   return digits?.length ? digits : null;
 }
 
