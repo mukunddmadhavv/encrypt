@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar.jsx';
 import ConditionEditor from '../components/ConditionEditor.jsx';
 import NotifyTargetEditor from '../components/NotifyTargetEditor.jsx';
+import SoulEditor from '../components/SoulEditor.jsx';
 import { useWebSocket } from '../hooks/useWebSocket.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 
@@ -18,6 +19,21 @@ export default function Settings() {
           <p className="text-gray-500 text-sm mt-1">
             Define when Encrypt should alert you.
           </p>
+        </div>
+
+        {/* Soul / persona — auto-reply */}
+        <div className="card-minimal p-7 space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-lg flex-shrink-0">🧠</div>
+            <div>
+              <h2 className="font-semibold text-gray-900">Your Persona (Auto-Reply)</h2>
+              <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                Describe yourself — how you text, your interests, phrases you use.
+                When enabled, the bot replies to DMs and group @-mentions <em>as you</em>, using Groq AI.
+              </p>
+            </div>
+          </div>
+          <SoulEditor />
         </div>
 
         {/* Notification condition */}

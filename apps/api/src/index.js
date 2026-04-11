@@ -15,6 +15,7 @@ import authRoutes from './routes/auth.routes.js';
 import whatsappRoutes from './routes/whatsapp.routes.js';
 import conditionRoutes from './routes/condition.routes.js';
 import notifyTargetRoutes from './routes/notify-target.routes.js';
+import soulRoutes from './routes/soul.routes.js';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/condition', conditionRoutes);
 app.use('/api/notify-target', notifyTargetRoutes);
+app.use('/api/soul', soulRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ success: false, error: 'Route not found' }));

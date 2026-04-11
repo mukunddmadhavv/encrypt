@@ -46,4 +46,8 @@ export const deleteCondition = ()       => api.delete('/condition');
 export const getNotifyTarget  = () => api.get('/notify-target');
 export const saveNotifyTarget = (data) => api.put('/notify-target', data);
 
+// ── Soul / persona (auto-reply) ───────────────────────────────────────────────
+export const getSoul  = ()     => api.get('/soul');
+export const saveSoul = (data) => api.put('/soul', data);
+
 export default api;

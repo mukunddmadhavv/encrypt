@@ -11,7 +11,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import prisma from '../lib/prisma.js';
 import { downloadSession, uploadSession, deleteSession } from './supabase-session.service.js';
-import { shouldNotify, summarizeMessage } from './llm.service.js';
+import { shouldNotify, summarizeMessage, generateAutoReply } from './llm.service.js';
 import { sendNotification } from './notifier.service.js';
 import { broadcastConnectionStatus, broadcastQR } from '../websocket/manager.js';
 
@@ -21,6 +21,9 @@ const activeSessions = new Map();
 const qrCodes = new Map();
 // Map of userId -> notification group JID
 const notifyGroups = new Map();
+// Auto-reply cooldown: "userId:senderJid" -> timestamp of last reply (ms)
+const autoReplyCooldown = new Map();
+const AUTO_REPLY_COOLDOWN_MS = 1_000; // 1 reply per sender per minute
 const silentLogger = pino({ level: 'silent' });
 
 export function getLatestQr(userId) {
@@ -54,24 +57,18 @@ function closeSocket(sock) {
 async function ensureNotifyGroup(userId, sock, phoneOrSelfJid) {
   if (notifyGroups.has(userId)) return notifyGroups.get(userId);
 
-  const selfJid = phoneOrSelfJid?.endsWith('@s.whatsapp.net')
-    ? phoneOrSelfJid
-    : `${(phoneOrSelfJid || '').replace(/[^0-9]/g, '')}@s.whatsapp.net`;
+  // Strip the ':device' suffix WhatsApp adds to multi-device JIDs (e.g. "91xxx:9@s.whatsapp.net" → "91xxx@s.whatsapp.net")
+  // then normalise to a plain @s.whatsapp.net JID we can send to.
+  let base = (phoneOrSelfJid || '').split(':')[0]; // drop device suffix
+  base = base.split('@')[0];                        // drop any existing domain
+  const digits = base.replace(/[^0-9]/g, '');
 
-  if (!selfJid || !selfJid.endsWith('@s.whatsapp.net')) return null;
+  if (!digits) return null;
 
-  try {
-    const subject = `Notifier-${userId.slice(0, 4)}`;
-    const res = await sock.groupCreate(subject, [selfJid]);
-    if (res?.id) {
-      notifyGroups.set(userId, res.id);
-      console.log(`[Baileys] 📂 Created notify group ${res.id} for user ${userId}`);
-      return res.id;
-    }
-  } catch (err) {
-    console.error(`[Baileys] Failed to create notify group for ${userId}:`, err.message);
-  }
-  return null;
+  const selfJid = `${digits}@s.whatsapp.net`;
+  notifyGroups.set(userId, selfJid);
+  console.log(`[Baileys] 📬 Notify target resolved to ${selfJid} for user ${userId}`);
+  return selfJid;
 }
 
 /**
@@ -87,7 +84,7 @@ export async function createSession(userId) {
     closeSocket(existing);
     activeSessions.delete(userId);
   }
-  
+
   qrCodes.delete(userId);
 
   const localDir = getLocalDir(userId);
@@ -248,6 +245,57 @@ export async function createSession(userId) {
         await sendNotification(sock, user.phone, senderName, text, condition.prompt, summary, targetJid);
       } else {
         console.log(`[Baileys] No match for message from ${senderName} (user ${userId})`);
+      }
+
+      // ── Auto-reply (soul persona) ──────────────────────────────────────────
+      // Fetch soul settings once per message (user may toggle live)
+      const soulData = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { soulProfile: true, autoReplyEnabled: true },
+      });
+
+      if (soulData?.autoReplyEnabled && soulData?.soulProfile?.trim()) {
+        // Determine if this message should trigger an auto-reply:
+        // - Private DM: always
+        // - Group: only if the user's own JID is in the @-mention list
+        const selfJidBase = sock.user?.id?.split(':')[0]?.split('@')[0]; // e.g. "919876543210"
+        const mentionedJids = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+        const selfMentioned = selfJidBase
+          ? mentionedJids.some((j) => j.startsWith(selfJidBase))
+          : false;
+
+        const shouldAutoReply =
+          chatType === 'private' || (chatType === 'group' && selfMentioned);
+
+        if (shouldAutoReply) {
+          const cooldownKey = `${userId}:${msg.key.remoteJid}:${senderJid}`;
+          const lastReply = autoReplyCooldown.get(cooldownKey) || 0;
+          const now = Date.now();
+
+          if (now - lastReply > AUTO_REPLY_COOLDOWN_MS) {
+            autoReplyCooldown.set(cooldownKey, now);
+            console.log(`[Baileys] 🤖 Generating auto-reply for ${senderName} (${chatType})`);
+
+            const replyText = await generateAutoReply(
+              soulData.soulProfile,
+              senderName,
+              text,
+              chatType
+            );
+
+            if (replyText) {
+              const replyTarget = msg.key.remoteJid; // group JID or DM JID
+              await sock.sendMessage(replyTarget, {
+                text: replyText,
+                ...(chatType === 'group' ? { quoted: msg } : {}),
+              });
+              console.log(`[Baileys] ✉️  Auto-reply sent to ${replyTarget}`);
+            }
+          } else {
+            const secsLeft = Math.ceil((AUTO_REPLY_COOLDOWN_MS - (now - lastReply)) / 1000);
+            console.log(`[Baileys] ⏳ Auto-reply cooldown active for ${senderName} (${secsLeft}s left)`);
+          }
+        }
       }
     }
   });

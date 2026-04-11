@@ -15,9 +15,13 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('7d'),
 
-  // OpenRouter
+  // OpenRouter (existing notification LLM)
   OPENROUTER_API_KEY: z.string().min(1, 'OPENROUTER_API_KEY is required'),
   OPENROUTER_MODEL: z.string().default('deepseek/deepseek-chat'),
+
+  // Groq (auto-reply LLM — optional; auto-reply silently skips if absent)
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
 
   // Optional override target for notifications (JID takes precedence)
   NOTIFY_TARGET_JID: z.string().optional(),

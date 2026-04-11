@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import Groq from 'groq-sdk';
 import { env } from '../config/env.js';
 
 const openai = new OpenAI({
@@ -86,6 +87,64 @@ export async function summarizeMessage(condition, messageText, senderName) {
     return completion.choices[0]?.message?.content?.trim() || null;
   } catch (err) {
     console.error('[LLM] Error summarizing message:', err);
+    return null;
+  }
+}
+
+// ── Groq client (auto-reply) ───────────────────────────────────────────────────
+const groqClient = env.GROQ_API_KEY ? new Groq({ apiKey: env.GROQ_API_KEY }) : null;
+
+/**
+ * Generates a short, human-sounding auto-reply *as* the user.
+ * Uses the user's soulProfile as a system persona so replies match their style.
+ *
+ * @param {string} soulProfile   - The user's personal description / persona text
+ * @param {string} senderName    - Name of whoever sent the message
+ * @param {string} messageText   - The message they sent
+ * @param {'private'|'group'} chatType - DM or group @-mention context
+ * @returns {Promise<string|null>}  Reply text, or null if unavailable
+ */
+export async function generateAutoReply(soulProfile, senderName, messageText, chatType) {
+  if (!groqClient) {
+    console.log('[LLM] Groq not configured — skipping auto-reply');
+    return null;
+  }
+  if (!soulProfile?.trim() || !messageText?.trim()) return null;
+
+  const contextHint =
+    chatType === 'group'
+      ? 'You were tagged/mentioned in a group chat. Reply naturally, briefly.'
+      : 'This is a private DM. Reply casually and naturally.';
+
+  try {
+    const completion = await groqClient.chat.completions.create({
+      model: env.GROQ_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content:
+            `You are roleplaying as a real person based on the profile below. ` +
+            `Respond to the incoming WhatsApp message exactly as this person would — ` +
+            `same texting style, vocabulary, tone, and length. ` +
+            `Do NOT use formal language, excessive emojis, or sound like a bot. ` +
+            `Keep the reply short (1-3 sentences max). ` +
+            `${contextHint}\n\n` +
+            `=== PERSONA ===\n${truncate(soulProfile, 800)}`,
+        },
+        {
+          role: 'user',
+          content: `${senderName}: "${truncate(messageText, 300)}"`,
+        },
+      ],
+      max_tokens: 120,
+      temperature: 0.75,
+    });
+
+    const reply = completion.choices[0]?.message?.content?.trim();
+    console.log(`[LLM] Auto-reply generated (${reply?.length || 0} chars)`);
+    return reply || null;
+  } catch (err) {
+    console.error('[LLM] Groq auto-reply error:', err.message);
     return null;
   }
 }

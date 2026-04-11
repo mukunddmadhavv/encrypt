@@ -12,17 +12,20 @@ datasource db {
 }
 
 model User {
-  id          String     @id @default(cuid())
-  email       String     @unique
-  password    String     // bcrypt hashed - NEVER stored in plain text
-  name        String
-  phone       String?    // WhatsApp phone number - set after pairing
-  notifyTargetJid   String? // Optional override: send notifications to this JID (e.g., second number or group)
-  notifyTargetPhone String? // Optional override phone to build JID if notifyTargetJid not set
-  isConnected Boolean    @default(false)
-  condition   Condition?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id                String     @id @default(cuid())
+  email             String     @unique
+  password          String     // bcrypt hashed - NEVER stored in plain text
+  name              String
+  phone             String?    // WhatsApp phone number - set after pairing
+  notifyTargetJid   String?    // Optional override: send notifications to this JID (e.g., second number or group)
+  notifyTargetPhone String?    // Optional override phone to build JID if notifyTargetJid not set
+  isConnected       Boolean    @default(false)
+  // Soul / persona — used by the auto-reply feature
+  soulProfile       String?    @db.Text // Natural-language persona written by the user
+  autoReplyEnabled  Boolean    @default(false) // When true, bot replies to DMs and @-mentions as this user
+  condition         Condition?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
   @@map("users")
 }
