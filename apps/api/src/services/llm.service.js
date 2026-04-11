@@ -136,6 +136,7 @@ export async function generateAutoReply(soulProfile, senderName, messageText, ch
           `Respond to the incoming WhatsApp message exactly as this person would — ` +
           `same texting style, vocabulary, tone, and length. ` +
           `Do NOT use formal language, excessive emojis, or sound like a bot. ` +
+          `Do NOT include your name, "Me:", or any labels/prefixes in your response. Just send the raw text of the message. ` +
           `Keep the reply short (1-3 sentences max). ` +
           `${contextHint}\n` +
           `Current time (IST): ${nowIST} — use this for context if asked about time or activities.\n\n` +
