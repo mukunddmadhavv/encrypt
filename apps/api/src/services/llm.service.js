@@ -104,7 +104,7 @@ const groqClient = env.GROQ_API_KEY ? new Groq({ apiKey: env.GROQ_API_KEY }) : n
  * @param {'private'|'group'} chatType - DM or group @-mention context
  * @returns {Promise<string|null>}  Reply text, or null if unavailable
  */
-export async function generateAutoReply(soulProfile, senderName, messageText, chatType) {
+export async function generateAutoReply(soulProfile, senderName, messageText, chatType, history = []) {
   if (!groqClient) {
     console.log('[LLM] Groq not configured — skipping auto-reply');
     return null;
@@ -116,26 +116,38 @@ export async function generateAutoReply(soulProfile, senderName, messageText, ch
       ? 'You were tagged/mentioned in a group chat. Reply naturally, briefly.'
       : 'This is a private DM. Reply casually and naturally.';
 
+  // Current time in IST — gives the LLM real temporal awareness
+  const nowIST = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date());
+
   try {
+    // history already contains the latest user message (pushed before this call),
+    // so we use it directly as the full message thread after the system prompt.
+    const messages = [
+      {
+        role: 'system',
+        content:
+          `You are roleplaying as a real person based on the profile below. ` +
+          `Respond to the incoming WhatsApp message exactly as this person would — ` +
+          `same texting style, vocabulary, tone, and length. ` +
+          `Do NOT use formal language, excessive emojis, or sound like a bot. ` +
+          `Keep the reply short (1-3 sentences max). ` +
+          `${contextHint}\n` +
+          `Current time (IST): ${nowIST} — use this for context if asked about time or activities.\n\n` +
+          `=== PERSONA ===\n${truncate(soulProfile, 800)}`,
+      },
+      // Inject full conversation history so Groq knows what was said before
+      ...history,
+    ];
+
     const completion = await groqClient.chat.completions.create({
       model: env.GROQ_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content:
-            `You are roleplaying as a real person based on the profile below. ` +
-            `Respond to the incoming WhatsApp message exactly as this person would — ` +
-            `same texting style, vocabulary, tone, and length. ` +
-            `Do NOT use formal language, excessive emojis, or sound like a bot. ` +
-            `Keep the reply short (1-3 sentences max). ` +
-            `${contextHint}\n\n` +
-            `=== PERSONA ===\n${truncate(soulProfile, 800)}`,
-        },
-        {
-          role: 'user',
-          content: `${senderName}: "${truncate(messageText, 300)}"`,
-        },
-      ],
+      messages,
       max_tokens: 120,
       temperature: 0.75,
     });

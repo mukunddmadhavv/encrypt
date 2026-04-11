@@ -24,7 +24,18 @@ const notifyGroups = new Map();
 // Auto-reply cooldown: "userId:senderJid" -> timestamp of last reply (ms)
 const autoReplyCooldown = new Map();
 const AUTO_REPLY_COOLDOWN_MS = 1_000; // 1 reply per sender per minute
+// Conversation history for auto-reply context: "userId:remoteJid" -> [{role, content}]
+const chatHistory = new Map();
+const MAX_HISTORY_MESSAGES = 20; // sliding window — old messages drop off the front
 const silentLogger = pino({ level: 'silent' });
+
+/** Appends a message to the chat history and enforces the sliding window */
+function pushToHistory(key, role, content) {
+  if (!chatHistory.has(key)) chatHistory.set(key, []);
+  const hist = chatHistory.get(key);
+  hist.push({ role, content });
+  if (hist.length > MAX_HISTORY_MESSAGES) hist.splice(0, hist.length - MAX_HISTORY_MESSAGES);
+}
 
 export function getLatestQr(userId) {
   return qrCodes.get(userId) || null;
@@ -269,21 +280,29 @@ export async function createSession(userId) {
 
         if (shouldAutoReply) {
           const cooldownKey = `${userId}:${msg.key.remoteJid}:${senderJid}`;
-          const lastReply = autoReplyCooldown.get(cooldownKey) || 0;
+          const histKey    = `${userId}:${msg.key.remoteJid}`;
+          const lastReply  = autoReplyCooldown.get(cooldownKey) || 0;
           const now = Date.now();
+
+          // Push the incoming message into history before generating a reply
+          pushToHistory(histKey, 'user', `${senderName}: "${text}"`);
 
           if (now - lastReply > AUTO_REPLY_COOLDOWN_MS) {
             autoReplyCooldown.set(cooldownKey, now);
-            console.log(`[Baileys] 🤖 Generating auto-reply for ${senderName} (${chatType})`);
+            console.log(`[Baileys] 🤖 Generating auto-reply for ${senderName} (${chatType}) — history: ${chatHistory.get(histKey)?.length || 0} msgs`);
 
             const replyText = await generateAutoReply(
               soulData.soulProfile,
               senderName,
               text,
-              chatType
+              chatType,
+              chatHistory.get(histKey) || []
             );
 
             if (replyText) {
+              // Push the bot's reply into history so next message has full context
+              pushToHistory(histKey, 'assistant', replyText);
+
               const replyTarget = msg.key.remoteJid; // group JID or DM JID
               await sock.sendMessage(replyTarget, {
                 text: replyText,
