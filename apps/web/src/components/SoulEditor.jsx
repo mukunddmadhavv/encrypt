@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getSoul, saveSoul } from '../lib/api.js';
 
-const PLACEHOLDER = `Examples of what to include:
-• My name is Mukund. I'm a developer who loves building things.
-• I text in casual Hinglish — mix of Hindi and English.
-• I usually reply short and to the point, sometimes with "haan", "bhai", "theek hai".
-• I'm into startups, coding, music, and late-night coding sessions.
-• I avoid formal language. I don't say "Greetings" or "Hope this message finds you well".
-• If someone asks where I am, just say "busy with work, will catch up later".`;
+const PLACEHOLDER = `Chat like a real person on WhatsApp—friendly, clear, and to the point. Keep messages short, natural, and helpful. Use a casual tone, ask simple follow-ups when required, and avoid sounding robotic or too formal.`;
 
 export default function SoulEditor() {
   const [soul, setSoul] = useState('');
@@ -21,7 +15,7 @@ export default function SoulEditor() {
     getSoul()
       .then((res) => {
         const data = res.data.data || {};
-        setSoul(data.soulProfile || '');
+        setSoul(data.soulProfile || PLACEHOLDER);
         setEnabled(data.autoReplyEnabled ?? false);
       })
       .catch(() => {})
